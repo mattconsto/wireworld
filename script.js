@@ -62,6 +62,7 @@ document.addEventListener("keypress", function (e) {
 });
 
 canvas.addEventListener("mousedown", function (e) {
+	if(e.target == canvas) e.preventDefault();
 	lastPos = mousePos = getMousePos(canvas, e);
 	brush   = e.button;
 	drawing = true;
@@ -230,6 +231,8 @@ function events() {
 		});
 
 		lastPos = mousePos;
+
+		if(!running) render();
 	}
 }
 
@@ -287,8 +290,11 @@ function loop() {
 	requestAnimationFrame(loop);
 	// Drawing code goes here
 	events();
-	if(running) logic();
-	render();
+	if(running) {
+		logic();
+		render();
+	}
 }
 
+render();
 loop();

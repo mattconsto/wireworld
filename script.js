@@ -15,34 +15,19 @@ const loadButton = document.getElementById('load');
 canvas.width  = size.width;
 canvas.height = size.height;
 
-function randomIntFromInterval(min,max) {
-	return Math.floor(Math.random()*(max-min+1)+min);
-}
-
-function copyArray(array) {
-    var result = []; // creates an result array inside your function scope
-
-    if (array.length == 0)
-        return result; // return this empty array in case the input array is also empty
-
-    for (var i = 0; i != array.length; i++) {
-        if (array[i] instanceof Array) {
-            result.push(copyArray(array[i].slice(0))); // call the function recursively if the element is an array
-        } else {
-            result.push(array[i]); // copy the element if it is not an array (going to use reference if it's an object)
-        }
-    }
-
-    return result; // returns the resulting array
-}
-
+let logic_state = new Array(size.height);
 let world = new Array(size.height);
 for(let y = 0; y < size.height; y++) {
 	world[y] = new Array(size.width);
+	logic_state[y] = new Array(size.width);
 	for(let x = 0; x < size.width; x++) {
+		logic_state[y][x] = 0;
 		world[y][x] = 0;
 	}
 }
+
+let render_image = context.createImageData(size.width, size.height);
+let render_data  = render_image.data;
 
 // Event Listeners
 
@@ -119,6 +104,7 @@ function getTouchPos(canvasDom, touchEvent) {
 	};
 }
 
+
 loadButton.onclick = function() {
 	if(running) {
 		running = false;
@@ -134,11 +120,16 @@ loadButton.onclick = function() {
 	size = {width: buffer[0], height: buffer[1]};
 	canvas.width  = size.width;
 	canvas.height = size.height;
+
+	render_image = context.createImageData(size.width, size.height);
+	render_data  = render_image.data;	
 	console.log(size);
 
 	world = new Array(size.height);
+	logic_state = new Array(size.height);
 	for(let y = 0; y < size.height; y++) {
 		world[y] = new Array(size.width);
+		logic_state[y] = new Array(size.width);
 	}
 
 	let offset = input.indexOf("\n") + 1;
@@ -222,6 +213,8 @@ function drawLine(x0, y0, x1, y1, call) {
 
 function events() {
 	if (drawing) {
+		console.log("Drawing");
+
 		const start = mousePos;
 		const end   = lastPos;
 
@@ -234,21 +227,19 @@ function events() {
 	}
 }
 
-let lastTime = new Date(0);
 let calculating = false; // Not good but might work
 
 function logic() {
-	let currentTime = new Date();
-	if(!calculating && Math.floor(currentTime - lastTime) > 50) {
+	if(!calculating) {
 		calculating = true;
-		const state = copyArray(world);
 
 		for(let y = 0; y < size.height; y++) {
+			logic_state[y] = new Array(size.width);
 			for(let x = 0; x < size.width; x++) {
 				switch(world[y][x]) {
-					case 0: break;
-					case 1: state[y][x] = 2; break;
-					case 2: state[y][x] = 3; break;
+					case 0: logic_state[y][x] = 0; break;
+					case 1: logic_state[y][x] = 2; break;
+					case 2: logic_state[y][x] = 3; break;
 					case 3: {
 						let count = 0;
 
@@ -259,37 +250,41 @@ function logic() {
 							}
 						}
 						if(count == 1 || count == 2) {
-							state[y][x] = 1;
+							logic_state[y][x] = 1;
+						} else {
+							logic_state[y][x] = 3;
 						}
 					} break;
 				}
 			}
 		}
-		world = state;
-		lastTime = currentTime;
+
+		for(let y = 0; y < size.height; y++) {
+			world[y] = logic_state[y];
+		}
 		calculating = false;
 	}
 }
 
 function render() {
-	var image = context.createImageData(size.width, size.height);
-	var data  = image.data;
-	for(let i = 0; i < data.length && i < size.width*size.height*4; i += 4) {
-		let value = world[Math.floor((i/4)/size.width)][Math.floor((i/4)%size.width)];
-		data[i+0] = pallet[value][0];
-		data[i+1] = pallet[value][1];
-		data[i+2] = pallet[value][2];
-		data[i+3] = 255;
+	for(let i = 0; i < render_data.length; i += 4) {
+		// ~~ instead of Math.floor for 20% speed boost
+		let value = pallet[world[~~(i/4/size.width)][(i/4)%size.width]];
+		render_data[i+0] = value[0];
+		render_data[i+1] = value[1];
+		render_data[i+2] = value[2];
+		render_data[i+3] = 255;
 	}
-	context.putImageData(image, 0, 0);
+	context.putImageData(render_image, 0, 0);
 }
 
 function loop() {
-	requestAnimationFrame(loop);
 	// Drawing code goes here
 	events();
 	if (running) logic();
 	render();
+
+	requestAnimationFrame(loop);
 }
 
 loop();

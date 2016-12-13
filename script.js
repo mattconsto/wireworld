@@ -231,8 +231,6 @@ function events() {
 		});
 
 		lastPos = mousePos;
-
-		if(!running) render();
 	}
 }
 
@@ -290,11 +288,8 @@ function loop() {
 	requestAnimationFrame(loop);
 	// Drawing code goes here
 	events();
-	if(running) {
-		logic();
-		render();
-	}
+	if (running) logic();
+	render();
 }
 
-render();
 loop();

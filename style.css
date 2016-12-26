@@ -76,3 +76,8 @@ html, body {
 	image-rendering: pixelated;
 	cursor: crosshair;
 }
+
+/* Input */
+#input {
+	font-size: 7px;
+}

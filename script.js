@@ -1,36 +1,25 @@
 // Setup
-const scale  = 1;
-let   size   = {width: 250, height: 250};
-const pallet = [[0,0,0], [0,0,255], [255,0,0], [255,255,0]];
-let brushMap = [3, 1, 0, 2];
-let textMap  = [" ", "@", "~", "#"];
+const palletMap = [[0,0,0], [0,0,255], [255,0,0], [255,255,0]];
+const brushMap  = [3, 1, 0, 2];
+const textMap   = [" ", "@", "~", "#"];
 
-const canvas  = document.getElementById('wireworld');
-const context = canvas.getContext('2d');
+const canvas    = document.getElementById('canvas');
+const context   = canvas.getContext('2d');
 
-canvas.width  = size.width;
-canvas.height = size.height;
+let size        = {scale: 1, width: 250, height: 250, total: 250 * 250};
+let world       = new Array(size.total).fill(0);
 
-let logic_state = new Array(size.height);
-let world = new Array(size.height);
-for(let y = 0; y < size.height; y++) {
-	world[y] = new Array(size.width);
-	logic_state[y] = new Array(size.width);
-	for(let x = 0; x < size.width; x++) {
-		logic_state[y][x] = 0;
-		world[y][x] = 0;
-	}
-}
+canvas.width    = size.width;
+canvas.height   = size.height;
 
-let render_image = context.createImageData(size.width, size.height);
-let render_data  = render_image.data;
+// Caches
+let worldCache  = new Array(size.total);
+let imageCache  = context.createImageData(size.width, size.height);
+let dataCache   = imageCache.data;
+for(let i = 0; i < size.total; i++) dataCache[i*4+3] = 255;
 
 // Event Listeners
-
-let running     = false;
-let drawing     = false;
-let calculating = false;
-
+let running = drawing = calculating = false;
 let brush    = 0;
 let mousePos = lastPos = {x: 0, y: 0};
 
@@ -39,7 +28,7 @@ document.addEventListener("keypress", function (e) {if(e.keyCode == 32) console.
 canvas.addEventListener("mousedown",   function(e) {e.preventDefault(); lastPos = mousePos = getMousePos(canvas, e); brush = e.button; drawing = true;});
 canvas.addEventListener("mouseup",     function(e) {e.preventDefault(); drawing = false;});
 canvas.addEventListener("mousemove",   function(e) {e.preventDefault(); mousePos = getMousePos(canvas, e);});
-canvas.addEventListener('contextmenu', function(e) {e.preventDefault(); return false;});
+canvas.addEventListener('contextmenu', function(e) {e.preventDefault();});
 
 canvas.addEventListener("touchstart",  function(e) {e.preventDefault(); canvas.dispatchEvent(new MouseEvent("mousedown", e.touches[0]));});
 canvas.addEventListener("touchend",    function(e) {e.preventDefault(); canvas.dispatchEvent(new MouseEvent("mouseup", {}));});
@@ -49,66 +38,56 @@ canvas.addEventListener("touchmove",   function(e) {e.preventDefault(); canvas.d
 function getMousePos(canvasDom, mouseEvent) {
 	const rect = canvasDom.getBoundingClientRect();
 	return {
-		x: Math.floor((mouseEvent.clientX - rect.left)/scale),
-		y: Math.floor((mouseEvent.clientY - rect.top)/scale)
+		x: Math.floor((mouseEvent.clientX - rect.left)/size.scale),
+		y: Math.floor((mouseEvent.clientY - rect.top)/size.scale)
 	};
 }
 
-document.getElementById('load').onclick = function self() {
+document.getElementById('load-button').onclick = function self() {
 	if(running) {running = false; setTimeout(self, 1000); return;}
-
 	console.log("Loading");
 
-	// let input = inputArea.value;
 	let input = LZString.decompressFromBase64(document.getElementById('input').value);
-
 	let buffer = input.split('\n', 1)[0].split(" ");
-	size = {width: buffer[0], height: buffer[1]};
+
+	// Setup
+	size = {scale: 1, width: buffer[0], height: buffer[1], total: buffer[0]*buffer[1]};
+	console.log(size);
+
 	canvas.width  = size.width;
 	canvas.height = size.height;
 
-	render_image = context.createImageData(size.width, size.height);
-	render_data  = render_image.data;	
-	console.log(size);
+	world = new Array(size.total);
 
-	world = new Array(size.height);
-	logic_state = new Array(size.height);
-	for(let y = 0; y < size.height; y++) {
-		world[y] = new Array(size.width);
-		logic_state[y] = new Array(size.width);
-	}
+	// Caches
+	worldCache = new Array(size.total);
+	imageCache = context.createImageData(size.width, size.height);
+	dataCache  = imageCache.data;	
+	for(let i = 0; i < size.total; i++) dataCache[i*4+3] = 255;
 
 	let offset = input.indexOf("\n") + 1;
-	for(let i = 0; i < input.length - offset && i < size.width*size.height; i++) {
+	for(let i = 0; i < input.length - offset && i < size.total; i++) {
 		switch(input[offset+i]) {
 			default: 
-			case " ": world[Math.floor(i/size.width)][i%size.width] = 0; break;
-			case "@": world[Math.floor(i/size.width)][i%size.width] = 1; break;
-			case "~": world[Math.floor(i/size.width)][i%size.width] = 2; break;
-			case "#": world[Math.floor(i/size.width)][i%size.width] = 3; break;
+			case textMap[0]: world[i] = 0; break;
+			case textMap[1]: world[i] = 1; break;
+			case textMap[2]: world[i] = 2; break;
+			case textMap[3]: world[i] = 3; break;
 		}
 	}
 }
 
-document.getElementById('save').onclick = function self() {
+document.getElementById('save-button').onclick = function self() {
 	if(running) {running = false; setTimeout(self, 1000); return;}
-
 	console.log("Saving");
 
 	let output = size.width + " " + size.height + "\n";
+	for(let i = 0; i < size.total; i++) output += textMap[world[i]];
 
-	for(let y = 0; y < size.height; y++) {
-		for(let x = 0; x < size.width; x++) {
-			output += textMap[world[y][x]];
-		}
-	}
-
-	// inputArea.value = output;
 	document.getElementById('input').value = LZString.compressToBase64(output);
 }
 
 // Game Loop
-
 function events() {
 	if (drawing) {
 		console.log("Drawing");
@@ -118,8 +97,8 @@ function events() {
 
 		// Draw with the brush
 		drawLine(start.x, start.y, end.x, end.y, function(x, y) {
-			if(y >= 0 && y < world.length && x >= 0 && x < world[y].length)
-				world[y][x] = brush >= 0 && brush < brushMap.length ? brushMap[brush] : 0;
+			if(y >= 0 && y < size.height && x >= 0 && x < size.width)
+				world[y*size.width+x] = brush >= 0 && brush < brushMap.length ? brushMap[brush] : 0;
 		});
 
 		lastPos = mousePos;
@@ -130,49 +109,42 @@ function logic() {
 	if(!calculating) {
 		calculating = true;
 
-		for(let y = 0; y < size.height; y++) {
-			logic_state[y] = new Array(size.width);
-			for(let x = 0; x < size.width; x++) {
-				switch(world[y][x]) {
-					case 0: logic_state[y][x] = 0; break;
-					case 1: logic_state[y][x] = 2; break;
-					case 2: logic_state[y][x] = 3; break;
-					case 3: {
-						let count = 0;
+		for(let i = 0; i < size.total; i++) {
+			switch(world[i]) {
+				default:
+				case 0: worldCache[i] = 0; break; // Nothing -> Nothing
+				case 1: worldCache[i] = 2; break; // Head -> Tail
+				case 2: worldCache[i] = 3; break; // Tail -> Conductor
+				case 3: { // Conductor -> ???
+					// Count all neighbours
+					let count = 0;
+					for(let dy = -1; dy <= 1; dy++) {
+						for(let dx = -1; dx <= 1; dx++) {
+							if(dx == 0 && dy == 0) continue;
+							if(world[i + dx + dy*size.width] == 1) count++;
+						}
+					}
 
-						for(let j = -1; j <= 1 && y+j >= 0 && y+j < size.height; j++) {
-							for(let i = -1; i <= 1 && x+i >= 0 && x+i < size.width; i++) {
-								if(j == 0 && i == 0) continue;
-								if(world[y+j][x+i] == 1) count++;
-							}
-						}
-						if(count == 1 || count == 2) {
-							logic_state[y][x] = 1;
-						} else {
-							logic_state[y][x] = 3;
-						}
-					} break;
-				}
+					worldCache[i] = (count == 1 || count == 2) ? 1 : 3;
+				} break;
 			}
 		}
 
-		for(let y = 0; y < size.height; y++) {
-			world[y] = logic_state[y];
-		}
+		// Manually copy across to let the GC rest.
+		for(let i = 0; i < world.length; i++) world[i] = worldCache[i];
+
 		calculating = false;
 	}
 }
 
 function render() {
-	for(let i = j = 0; i < render_data.length/4; i++, j = i * 4) {
-		// ~~ instead of Math.floor for 20% speed boost
-		const value = pallet[world[~~(i/size.width)][i%size.width]];
-		render_data[j+0] = value[0];
-		render_data[j+1] = value[1];
-		render_data[j+2] = value[2];
-		render_data[j+3] = 255;
+	for(let i = j = 0; i < size.total; i++, j = i * 4) {
+		const value = palletMap[world[i]];
+		dataCache[j+0] = value[0];
+		dataCache[j+1] = value[1];
+		dataCache[j+2] = value[2];
 	}
-	context.putImageData(render_image, 0, 0);
+	context.putImageData(imageCache, 0, 0);
 }
 
 function loop() {

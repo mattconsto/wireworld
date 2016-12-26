@@ -1,31 +1,78 @@
+/* Font Awesome Icon compatability */
+nav i, nav [class^="mdi-"], nav [class*="mdi-"], nav i.material-icons {
+	display: inline-block;
+	user-select: none;
+}
+
+nav i.material-icons:not(:first-child) {
+	padding: 0 0 0 15px;
+}
+
+nav i.material-icons.fa {
+	position: relative;
+	top: -3px;
+}
+
+/* Nav formatting */
+nav {
+	background: #1f1f1f;
+	position: fixed;
+	top: 0;
+	z-index: 2;
+	overflow: hidden;
+	opacity: 0.8;
+}
+
+nav .nav-wrapper {
+	display: flex;
+}
+
+nav .nav-wrapper h1 {
+	flex-grow: 1;
+	text-align: center;
+	height: 56px;
+	line-height: 56px;
+	font-size: 2em;
+	margin: 0;
+	padding: 0;
+	white-space: nowrap;
+}
+
+@media only screen and (min-width: 601px) {
+	nav .nav-wrapper h1 {
+		height: 64px;
+		line-height: 64px;
+	}
+}
+
+/* Disabled polyfill */
+a[disabled]:not([disabled="false"]) {
+	pointer-events: none;
+	cursor: default;
+	opacity: 0.5;
+}
+
+/* Canvas formatting */
+body {
+	background: #1f1f1f;
+}
+
 html, body {
 	height: 100%;
-	padding: 0;
-	margin: 0;
-	background: #222;
-	color: #eee;
-	overflow: hidden;
-	font-family: "Arial";
+}
+
+#canvas.center-vertical {
+	top:0; bottom: 0; 
+}
+
+#canvas:not(.center-vertical) {
+	margin: 75px auto 15px auto;
 }
 
 #canvas {
-	position: absolute;
-	top:0; bottom: 0; left: 0; right: 0;
 	margin: auto;
+	position: absolute;
+	left: 0; right: 0;
 	image-rendering: pixelated;
 	cursor: crosshair;
-}
-
-nav {
-	display: flex;
-	margin: 10px;
-}
-
-nav * {
-	margin: 0 10px;
-}
-
-nav h1 {
-	width: 100%;
-	margin: 0;
 }

@@ -6,11 +6,19 @@ const textMap   = [" ", "@", "~", "#"];
 const canvas    = document.getElementById('canvas');
 const context   = canvas.getContext('2d');
 
-let size        = {scale: 1, width: 250, height: 250, total: 250 * 250};
+let size        = {scale: 2, width: 250, height: 250, total: 250 * 250};
 let world       = new Array(size.total).fill(0);
 
 canvas.width    = size.width;
 canvas.height   = size.height;
+canvas.style.height = (size.scale * size.height) + "px";
+canvas.style.width  = (size.scale * size.width) + "px";
+
+if(window.innerHeight > size.height*size.scale - 150) {
+	canvas.classList.add('center-vertical');
+} else {
+	canvas.classList.remove('center-vertical');
+}
 
 // Caches
 let worldCache  = new Array(size.total);
@@ -23,7 +31,13 @@ let running = drawing = calculating = false;
 let brush    = 0;
 let mousePos = lastPos = {x: 0, y: 0};
 
-document.addEventListener("keypress", function (e) {if(e.keyCode == 32) console.log((running = !running) ? "Running" : "Stopped");});
+window.addEventListener("resize", function() {
+	if(window.innerHeight > size.height*size.scale - 150) {
+		canvas.classList.add('center-vertical');
+	} else {
+		canvas.classList.remove('center-vertical');
+	}
+});
 
 canvas.addEventListener("mousedown",   function(e) {e.preventDefault(); lastPos = mousePos = getMousePos(canvas, e); brush = e.button; drawing = true;});
 canvas.addEventListener("mouseup",     function(e) {e.preventDefault(); drawing = false;});
@@ -43,6 +57,77 @@ function getMousePos(canvasDom, mouseEvent) {
 	};
 }
 
+document.getElementById('play-button').onclick = function() {
+	running = !running;
+	console.log(running ? "Running" : "Stopped");
+	document.getElementById('play-button').childNodes[0].innerHTML = running ? "pause" : "play_arrow";
+	document.getElementById('play-button').childNodes[0].title     = running ? "Stop Simulation" : "Start Simulation";
+}
+
+document.getElementById('zoomin-button').onclick = function() {
+	size.scale = Math.min(10, size.scale + 1);
+
+	canvas.style.height = (size.scale * size.height) + "px";
+	canvas.style.width  = (size.scale * size.width) + "px";
+
+	document.getElementById('zoomin-button').setAttribute("disabled", size.scale >= 10);
+	document.getElementById('zoomout-button').setAttribute("disabled", size.scale <= 1);
+
+	if(window.innerHeight > size.height*size.scale - 150) {
+		canvas.classList.add('center-vertical');
+	} else {
+		canvas.classList.remove('center-vertical');
+	}
+}
+
+document.getElementById('zoomout-button').onclick = function() {
+	size.scale = Math.max(1, size.scale - 1);
+
+	canvas.style.height = (size.scale * size.height) + "px";
+	canvas.style.width  = (size.scale * size.width) + "px";
+
+	document.getElementById('zoomin-button').setAttribute("disabled", size.scale >= 10);
+	document.getElementById('zoomout-button').setAttribute("disabled", size.scale <= 1);
+
+	if(window.innerHeight > size.height*size.scale - 150) {
+		canvas.classList.add('center-vertical');
+	} else {
+		canvas.classList.remove('center-vertical');
+	}
+}
+
+document.getElementById('new-button').onclick = function self() {
+	if(document.getElementById('new-width').value <= 0 || document.getElementById('new-height').value <= 0) return;
+
+	size = {
+		scale: size.scale,
+		width: document.getElementById('new-width').value,
+		height: document.getElementById('new-height').value,
+		total: document.getElementById('new-width').value*document.getElementById('new-height').value
+	};
+
+	console.log(size);
+
+	canvas.width  = size.width;
+	canvas.height = size.height;
+	canvas.style.height = (size.scale * size.height) + "px";
+	canvas.style.width  = (size.scale * size.width) + "px";
+
+	if(window.innerHeight > size.height*size.scale - 150) {
+		canvas.classList.add('center-vertical');
+	} else {
+		canvas.classList.remove('center-vertical');
+	}
+
+	world = new Array(size.total).fill(0);
+
+	// Caches
+	worldCache = new Array(size.total);
+	imageCache = context.createImageData(size.width, size.height);
+	dataCache  = imageCache.data;	
+	for(let i = 0; i < size.total; i++) dataCache[i*4+3] = 255;
+}
+
 document.getElementById('load-button').onclick = function self() {
 	if(running) {running = false; setTimeout(self, 1000); return;}
 	console.log("Loading");
@@ -51,11 +136,19 @@ document.getElementById('load-button').onclick = function self() {
 	let buffer = input.split('\n', 1)[0].split(" ");
 
 	// Setup
-	size = {scale: 1, width: buffer[0], height: buffer[1], total: buffer[0]*buffer[1]};
+	size = {scale: size.scale, width: buffer[0], height: buffer[1], total: buffer[0]*buffer[1]};
 	console.log(size);
 
 	canvas.width  = size.width;
 	canvas.height = size.height;
+	canvas.style.height = (size.scale * size.height) + "px";
+	canvas.style.width  = (size.scale * size.width) + "px";
+
+	if(window.innerHeight > size.height*size.scale - 150) {
+		canvas.classList.add('center-vertical');
+	} else {
+		canvas.classList.remove('center-vertical');
+	}
 
 	world = new Array(size.total);
 

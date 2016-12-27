@@ -213,7 +213,6 @@ function logic() {
 					let count = 0;
 					for(let dy = -1; dy <= 1; dy++) {
 						for(let dx = -1; dx <= 1; dx++) {
-							if(dx == 0 && dy == 0) continue;
 							if(world[i + dx + dy*size.width] == 1) count++;
 						}
 					}

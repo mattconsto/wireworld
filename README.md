@@ -1,6 +1,6 @@
 Wireworld
 =========
 
-A simple Wireworld simulator:
+A simple [Wireworld](https://en.wikipedia.org/wiki/Wireworld) simulator.
 
-https://en.wikipedia.org/wiki/Wireworld
+![](screenshot.png)

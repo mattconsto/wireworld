@@ -45,6 +45,14 @@ nav .nav-wrapper h1 {
 	}
 }
 
+/* Modals */
+.modal {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+}
+
 /* Disabled polyfill */
 a[disabled]:not([disabled="false"]) {
 	pointer-events: none;

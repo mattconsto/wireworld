@@ -1,3 +1,26 @@
+// Modals
+
+window.addEventListener("hashchange", function(e) {
+	var target = document.getElementById(window.location.hash.substr(1));
+	if(target != null && target.classList.contains("modal")) {
+		e.preventDefault();
+
+		var modals = document.getElementsByClassName("modal");
+		for(var i = 0; i < modals.length; i++) modals[i].style.display = "none";
+
+		target.style.display = "block";
+
+		window.location.hash = "";
+		return false;
+	}
+});
+
+var closes = document.getElementsByClassName("modal-close");
+for(var i = 0; i < closes.length; i++) closes[i].addEventListener("click", function(e) {
+	var modals = document.getElementsByClassName("modal");
+	for(var i = 0; i < modals.length; i++) modals[i].style.display = "none";
+})
+
 // Setup
 const palletMap = [[0,0,0], [0,0,255], [255,0,0], [255,255,0]];
 const brushMap  = [3, 1, 0, 2];
@@ -60,8 +83,7 @@ function getMousePos(canvasDom, mouseEvent) {
 document.getElementById('play-button').onclick = function() {
 	running = !running;
 	console.log(running ? "Running" : "Stopped");
-	document.getElementById('play-button').childNodes[0].innerHTML = running ? "pause" : "play_arrow";
-	document.getElementById('play-button').childNodes[0].title     = running ? "Stop Simulation" : "Start Simulation";
+	document.getElementById('play-button').innerHTML = running ? "Pause" : "Play";
 }
 
 document.getElementById('zoomin-button').onclick = function() {
@@ -183,8 +205,6 @@ document.getElementById('save-button').onclick = function self() {
 // Game Loop
 function events() {
 	if (drawing) {
-		console.log("Drawing");
-
 		const start = mousePos;
 		const end   = lastPos;
 

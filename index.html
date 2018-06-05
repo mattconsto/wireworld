@@ -2,13 +2,9 @@
 <html>
 <head>
 	<title>Wireworld</title>
-	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.8/css/materialize.min.css" />
-	<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons" />
-	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" />
+	<link rel="stylesheet" href="materialize.min.css" />
 	<link rel="stylesheet" href="style.css" />
 
-	<script src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.8/js/materialize.min.js"></script>
 	<script src="lz-string.min.js"></script>
 	<script src="drawline.js"></script>
 </head>
@@ -17,15 +13,16 @@
 	<nav>
 		<div class="nav-wrapper">
 			<ul>
-				<li><a href="../" title="Return to GitHub"><i class="material-icons">arrow_back</i><i class="material-icons fa fa-github"></i></a></li>
+				<li><a href="/" title="Return Home">Matt Consto</a></li>
 			</ul>
 			<h1>Wireworld</h1>
 			<ul>
-				<li><a id="play-button" title="Start Simulation"><i class="material-icons">play_arrow</i></a></li>
-				<li><a id="zoomin-button" title="Zoom In"><i class="material-icons">zoom_in</i></a></li>
-				<li><a id="zoomout-button" title="Zoom Out"><i class="material-icons">zoom_out</i></a></li>
-				<li><a href="#modal-new" title="New Simulation"><i class="material-icons">add</i></a></li>
-				<li><a href="#modal-opensave" title="Open/Save Simulation"><i class="material-icons">folder_open</i></a></li>
+				<li><a id="play-button">Play</a></li>
+				<li><a id="zoomin-button">Zoom In</a></li>
+				<li><a id="zoomout-button">Zoom Out</a></li>
+				<li><a href="#modal-new">New</a></li>
+				<li><a href="#modal-opensave">Load</a></li>
+				<li><a href="#modal-opensave">Save</a></li>
 			</ul>
 		</div>
 	</nav>
@@ -67,10 +64,5 @@
 	</div>
 
 	<script src="script.js"></script>
-	<script>
-		$(document).ready(function(){
-			$('.modal').modal();
-		});
-	</script>
 </body>
 </html>
